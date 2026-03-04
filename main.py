@@ -73,8 +73,8 @@ class Timer:
     def pause(self):
         """Pause the timer."""
         if self.is_running and not self.is_paused:
-            self._elapsed_before_pause += time.perf_counter() - self._start_time
-            self._start_time = 0
+            self._elapsed_before_pause += (time.perf_counter() - self._start_time)
+            self._start_time = time.perf_counter()
             self.is_paused = True
 
     def resume(self):
