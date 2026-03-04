@@ -55,8 +55,14 @@ class Timer:
         self._thread = None  # Internal thread for countdown
         self._delta = 0.1
 
+        self._start_time = 0
+        self._elapsed_before_pause = 0
+
     def start(self):
         """Start the timer. If the thread doesn't exist, create it."""
+        self._elapsed_before_pause = 0
+        self._start_time = time.perf_counter()
+
         self.current_sec = self.max_sec
         self.is_running = True
         self.is_paused = False
@@ -67,15 +73,20 @@ class Timer:
     def pause(self):
         """Pause the timer."""
         if self.is_running and not self.is_paused:
+            self._elapsed_before_pause += time.perf_counter() - self._start_time
+            self._start_time = 0
             self.is_paused = True
 
     def resume(self):
         """Resume the timer if it was paused."""
         if self.is_running and self.is_paused:
+            self._start_time = time.perf_counter()
             self.is_paused = False
 
     def stop(self):
         """Stop the timer and reset to max_sec."""
+        self._elapsed_before_pause = 0
+        self._start_time = 0
         self.is_running = False
         self.is_paused = False
         self.current_sec = self._delta
@@ -96,15 +107,24 @@ class Timer:
         while self.is_running and self.current_sec > 0:
             if not self.is_paused:
                 time.sleep(self._delta)  # High precision countdown
-                self.current_sec -= self._delta
-                if self.current_sec < 0:
+                elapsed = self._elapsed_before_pause + (
+                    time.perf_counter() - self._start_time
+                )
+                self.current_sec = self.max_sec - elapsed
+
+                if self.is_running and self.current_sec < 0:
+                    # Auto reset
+                    self._start_time = time.perf_counter()
+                    self._elapsed_before_pause = 0
+                    self.current_sec = self.max_sec
+
+                    # High I/O operation needs to be placed after reset
                     winsound.Beep(800, 300)  # Beep when timer reaches 0
-                    self.current_sec = self.max_sec  # Auto-reset to max_sec
             else:
                 time.sleep(self._delta)  # Sleep while paused to reduce CPU usage
+
         self.is_running = False
         self.is_paused = False
-
 
 class UnifiedOverlay(QWidget):
     """A single transparent window that contains multiple circular timers."""
