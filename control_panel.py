@@ -43,13 +43,17 @@ class ControlPanel(QWidget):
             sec_in.setText("60")
             playalarm_checkbox = QCheckBox("Play alarm on timeout")
             playalarm_checkbox.setChecked(False)
+            repeat_checkbox = QCheckBox("Repeat this timer")
+            repeat_checkbox.setChecked(True)
             g_layout.addRow("Name:", name_in)
             g_layout.addRow("Inerval (sec):", sec_in)
             g_layout.addRow("", playalarm_checkbox)
+            g_layout.addRow("", repeat_checkbox)
             self.inputs[key.lower()] = {
                 "name": name_in,
                 "sec": sec_in,
                 "play alarm": playalarm_checkbox,
+                "repeat": repeat_checkbox,
             }
             group.setLayout(g_layout)
             layout.addWidget(group)
@@ -94,8 +98,9 @@ class ControlPanel(QWidget):
                 name = fields["name"].text()
                 sec = int(fields["sec"].text())
                 play_alarm_on_timeout = fields["play alarm"].isChecked()
+                is_repeating = fields["repeat"].isChecked()
                 self.overlay.timers_list.append(
-                    Timer(key, name, sec, play_alarm_on_timeout)
+                    Timer(key, name, sec, play_alarm_on_timeout, is_repeating)
                 )
             except:
                 continue

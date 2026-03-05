@@ -6,12 +6,20 @@ import winsound
 class Timer:
     """Single timer that supports start, stop, pause, resume, toggle"""
 
-    def __init__(self, key, name, max_sec, play_alarm_on_timeout=False):
+    def __init__(
+        self,
+        key,
+        name,
+        max_sec,
+        play_alarm_on_timeout=False,
+        is_repeating=False,
+    ):
         self.key = key  # Hotkey assigned to this timer (e.g., 'f1')
         self.name = name  # Display name
         self.max_sec = max_sec  # Maximum duration in seconds
         self.current_sec = 0  # Current remaining seconds
         self.play_alarm_on_timeout = play_alarm_on_timeout
+        self.is_repeating = is_repeating
 
         self.is_running = False  # True if timer is counting down
         self.is_paused = False  # True if timer is paused
@@ -76,6 +84,10 @@ class Timer:
                 self.current_sec = self.max_sec - elapsed
 
                 if self.is_running and self.current_sec < 0:
+
+                    if not self.is_repeating:
+                        break
+
                     # Auto reset
                     self._start_time = time.perf_counter()
                     self._elapsed_before_pause = 0
