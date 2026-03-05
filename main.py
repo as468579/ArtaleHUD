@@ -2,21 +2,22 @@ import sys
 import threading
 import time
 import winsound
+
+from pynput import keyboard
+from PyQt6.QtCore import QObject, QPoint, QRectF, Qt, QTimer, pyqtSignal
+from PyQt6.QtGui import QColor, QFont, QFontDatabase, QPainter, QPen
 from PyQt6.QtWidgets import (
     QApplication,
-    QWidget,
-    QVBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
+    QCheckBox,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
-    QCheckBox,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QRectF, QPoint, QTimer
-from PyQt6.QtGui import QPainter, QColor, QPen, QFont, QFontDatabase
-from pynput import keyboard
 
 # =========================
 # Global Color Definitions
@@ -75,7 +76,7 @@ class Timer:
     def pause(self):
         """Pause the timer."""
         if self.is_running and not self.is_paused:
-            self._elapsed_before_pause += (time.perf_counter() - self._start_time)
+            self._elapsed_before_pause += time.perf_counter() - self._start_time
             self._start_time = time.perf_counter()
             self.is_paused = True
 
@@ -124,10 +125,13 @@ class Timer:
                     if self.play_alarm_on_timeout:
                         winsound.Beep(800, 300)  # Beep when timer reaches 0
             else:
-                time.sleep(self._delta)  # Sleep while paused to reduce CPU usage
+                time.sleep(
+                    self._delta
+                )  # Sleep while paused to reduce CPU usage
 
         self.is_running = False
         self.is_paused = False
+
 
 class UnifiedOverlay(QWidget):
     """A single transparent window that contains multiple circular timers."""
@@ -180,11 +184,15 @@ class UnifiedOverlay(QWidget):
         radius = 25
         margin = max(1, int(radius / 2))
         painter.drawRoundedRect(
-            self.rect().adjusted(margin, margin, -margin, -margin), radius, radius
+            self.rect().adjusted(margin, margin, -margin, -margin),
+            radius,
+            radius,
         )
 
         num_timers = len(self.timers_list)
-        total_width = num_timers * self.circle_width + (num_timers - 1) * self.spacing
+        total_width = (
+            num_timers * self.circle_width + (num_timers - 1) * self.spacing
+        )
         start_x = (self.width() - total_width) // 2
 
         for i, timer in enumerate(self.timers_list):
@@ -227,8 +235,12 @@ class UnifiedOverlay(QWidget):
 
             # 4. Label
             name_rect = rect.adjusted(0, 25, 0, 0)
-            painter.setFont(QFont(self.font_family, NAME_FONT_SIZE, QFont.Weight.Bold))
-            painter.drawText(name_rect, Qt.AlignmentFlag.AlignCenter, timer.name)
+            painter.setFont(
+                QFont(self.font_family, NAME_FONT_SIZE, QFont.Weight.Bold)
+            )
+            painter.drawText(
+                name_rect, Qt.AlignmentFlag.AlignCenter, timer.name
+            )
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -292,7 +304,11 @@ class ControlPanel(QWidget):
             g_layout.addRow("Name:", name_in)
             g_layout.addRow("Inerval (sec):", sec_in)
             g_layout.addRow("", playalarm_checkbox)
-            self.inputs[key.lower()] = {"name": name_in, "sec": sec_in, "play alarm": playalarm_checkbox}
+            self.inputs[key.lower()] = {
+                "name": name_in,
+                "sec": sec_in,
+                "play alarm": playalarm_checkbox,
+            }
             group.setLayout(g_layout)
             layout.addWidget(group)
 
@@ -300,7 +316,8 @@ class ControlPanel(QWidget):
         self.apply_btn.setFixedHeight(40)
         self.apply_btn.clicked.connect(self.setup_overlay)
 
-        self.apply_btn.setStyleSheet("""
+        self.apply_btn.setStyleSheet(
+            """
             QPushButton {
                 background-color: black;   /* 黑底 */
                 color: white;              /* 白字 */
@@ -313,7 +330,8 @@ class ControlPanel(QWidget):
             QPushButton:pressed {
                 background-color: #999999; /* 點擊效果，更亮 */
             }
-        """)
+        """
+        )
 
         # self.stop_btn = QPushButton("Stop All Timers")
         # self.stop_btn.setFixedHeight(40)
@@ -333,8 +351,10 @@ class ControlPanel(QWidget):
             try:
                 name = fields["name"].text()
                 sec = int(fields["sec"].text())
-                play_alarm_on_timeout =  fields["play alarm"].isChecked()
-                self.overlay.timers_list.append(Timer(key, name, sec, play_alarm_on_timeout))
+                play_alarm_on_timeout = fields["play alarm"].isChecked()
+                self.overlay.timers_list.append(
+                    Timer(key, name, sec, play_alarm_on_timeout)
+                )
             except:
                 continue
 
