@@ -29,6 +29,14 @@ class Timer:
         self._start_time = 0
         self._elapsed_before_pause = 0
 
+    def reset(self, key, name, max_sec, play_alarm_on_timeout, is_repeating):
+        self.key = key  # Hotkey assigned to this timer (e.g., 'f1')
+        self.name = name  # Display name
+        self.max_sec = max_sec  # Maximum duration in seconds
+        self.current_sec = 0  # Current remaining seconds
+        self.play_alarm_on_timeout = play_alarm_on_timeout
+        self.is_repeating = is_repeating
+
     def start(self):
         """Start the timer. If the thread doesn't exist, create it."""
         self._elapsed_before_pause = 0

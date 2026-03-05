@@ -58,7 +58,7 @@ class ControlPanel(QWidget):
             group.setLayout(g_layout)
             layout.addWidget(group)
 
-        self.apply_btn = QPushButton("Reset && Stop Timers")
+        self.apply_btn = QPushButton("Reset All Timers")
         self.apply_btn.setFixedHeight(40)
         self.apply_btn.clicked.connect(self.setup_overlay)
 
@@ -130,6 +130,22 @@ class ControlPanel(QWidget):
                 return
             for timer in self.overlay.timers_list:
                 if timer.key == k.lower():
+
+                    timer.stop()
+
+                    fields = self.inputs[timer.key]
+                    name = fields["name"].text()
+                    sec = int(fields["sec"].text())
+                    play_alarm_on_timeout = fields["play alarm"].isChecked()
+                    is_repeating = fields["repeat"].isChecked()
+
+                    timer.reset(
+                        timer.key,
+                        name,
+                        sec,
+                        play_alarm_on_timeout,
+                        is_repeating,
+                    )
                     timer.start()
 
         self.hotkey_listener = keyboard.Listener(on_press=on_press)
