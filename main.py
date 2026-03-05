@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
+    QCheckBox,
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QRectF, QPoint, QTimer
 from PyQt6.QtGui import QPainter, QColor, QPen, QFont, QFontDatabase
@@ -44,11 +45,12 @@ BUTTON_FONT_SIZE = 14
 class Timer:
     """Single timer that supports start, stop, pause, resume, toggle"""
 
-    def __init__(self, key, name, max_sec):
+    def __init__(self, key, name, max_sec, play_alarm_on_timeout=False):
         self.key = key  # Hotkey assigned to this timer (e.g., 'f1')
         self.name = name  # Display name
         self.max_sec = max_sec  # Maximum duration in seconds
         self.current_sec = 0  # Current remaining seconds
+        self.play_alarm_on_timeout = play_alarm_on_timeout
 
         self.is_running = False  # True if timer is counting down
         self.is_paused = False  # True if timer is paused
@@ -119,7 +121,8 @@ class Timer:
                     self.current_sec = self.max_sec
 
                     # High I/O operation needs to be placed after reset
-                    winsound.Beep(800, 300)  # Beep when timer reaches 0
+                    if self.play_alarm_on_timeout:
+                        winsound.Beep(800, 300)  # Beep when timer reaches 0
             else:
                 time.sleep(self._delta)  # Sleep while paused to reduce CPU usage
 
@@ -284,9 +287,12 @@ class ControlPanel(QWidget):
             name_in.setText(f"{key}")
             sec_in = QLineEdit()
             sec_in.setText("60")
+            playalarm_checkbox = QCheckBox("Play alarm on timeout")
+            playalarm_checkbox.setChecked(False)
             g_layout.addRow("Name:", name_in)
             g_layout.addRow("Inerval (sec):", sec_in)
-            self.inputs[key.lower()] = {"name": name_in, "sec": sec_in}
+            g_layout.addRow("", playalarm_checkbox)
+            self.inputs[key.lower()] = {"name": name_in, "sec": sec_in, "play alarm": playalarm_checkbox}
             group.setLayout(g_layout)
             layout.addWidget(group)
 
@@ -325,8 +331,10 @@ class ControlPanel(QWidget):
         self.overlay.timers_list = []
         for key, fields in self.inputs.items():
             try:
+                name = fields["name"].text()
                 sec = int(fields["sec"].text())
-                self.overlay.timers_list.append(Timer(key, fields["name"].text(), sec))
+                play_alarm_on_timeout =  fields["play alarm"].isChecked()
+                self.overlay.timers_list.append(Timer(key, name, sec, play_alarm_on_timeout))
             except:
                 continue
 
