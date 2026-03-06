@@ -30,26 +30,22 @@ class ControlPanel(QWidget):
         super().__init__()
         self.overlay = overlay
         self.hotkey_listener = None
-        self.presets = self.load_presets()
+
+        # Load both preset database and initial configuration
+        self.presets = self.load_json("presets.json", {})
+        self.initial_config = self.load_json("config.json", {})
+
         self.init_ui()
 
-    def load_presets(self):
-        """
-        Load preset timer configurations from a JSON file.
-        Returns a dictionary of presets.
-        """
-        file_path = "presets.json"
-        if os.path.exists(file_path):
+    def load_json(self, filename, default_val):
+        """Helper to load JSON data with a fallback."""
+        if os.path.exists(filename):
             try:
-                with open(file_path, "r", encoding="utf-8") as f:
+                with open(filename, "r", encoding="utf-8") as f:
                     return json.load(f)
             except Exception as e:
-                print(f"Failed to load presets: {e}")
-
-        # Default fallback data if file is missing or corrupted
-        return {
-            "重複計時器": {"sec": "60", "play alarm": False, "repeat": True}
-        }
+                print(f"Error loading {filename}: {e}")
+        return default_val
 
     def init_ui(self):
         self.setWindowTitle("Artale Unified Control")
@@ -58,6 +54,7 @@ class ControlPanel(QWidget):
 
         self.inputs = {}
         for key in ["F1", "F2", "F3", "F4"]:
+            unique_key = key.lower()
             group = QGroupBox(f"Hotkey {key}")
             g_layout = QFormLayout()
 
@@ -70,10 +67,16 @@ class ControlPanel(QWidget):
             playalarm_checkbox = QCheckBox("Play alarm on timeout")
             repeat_checkbox = QCheckBox("Repeat this timer")
 
+            # Load initial values from config.json if available
+            conf = self.initial_config.get(unique_key, {})
+            name_combo.setCurrentText(conf.get("name", key))
+            sec_in.setText(str(conf.get("sec", "60")))
+            playalarm_checkbox.setChecked(conf.get("play alarm", False))
+            repeat_checkbox.setChecked(conf.get("repeat", False))
+
             # Connect signal to update other fields when a preset is selected
-            # Use a lambda to pass the specific hotkey key to the handler
             name_combo.currentTextChanged.connect(
-                lambda text, ky=key.lower(): self.on_preset_changed(ky, text)
+                lambda text, ky=unique_key: self.on_preset_changed(ky, text)
             )
 
             g_layout.addRow("Name:", name_combo)
@@ -81,15 +84,12 @@ class ControlPanel(QWidget):
             g_layout.addRow("", playalarm_checkbox)
             g_layout.addRow("", repeat_checkbox)
 
-            self.inputs[key.lower()] = {
+            self.inputs[unique_key] = {
                 "combo": name_combo,
                 "sec": sec_in,
                 "play alarm": playalarm_checkbox,
                 "repeat": repeat_checkbox,
             }
-
-            # Trigger initial fill-in based on the first item in the combo box
-            self.on_preset_changed(key.lower(), name_combo.currentText())
 
             group.setLayout(g_layout)
             layout.addWidget(group)

@@ -1,0 +1,6 @@
+{
+    "f1": {"name": "時間倒數", "sec": "10", "play alarm": false, "repeat": true},
+    "f2": {"name": "小怪重生", "sec": "45", "play alarm": true, "repeat": false},
+    "f3": {"name": "黑球重生", "sec": "75", "play alarm": true, "repeat": false},
+    "f4": {"name": "黑水", "sec": "40", "play alarm": true, "repeat": false}
+}
