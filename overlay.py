@@ -14,7 +14,8 @@ PANEL_BORDER_COLOR = QColor(255, 255, 255, 120)  # Panel border color
 
 # Rings
 RING_BG_COLOR = QColor(255, 255, 255, 60)  # Background ring color
-PROGRESS_ARC_COLOR = QColor(0, 200, 127)  # Progress arc color
+PROGRESS_START_ARC_COLOR = QColor(0, 200, 127)  # Progress arc color
+PROGRESS_COMPLETE_ARC_COLOR = QColor(255, 60, 60)  # Red color for near end
 PAUSE_ARC_COLOR = QColor(255, 165, 0)  # Pause arc color
 
 # Text
@@ -60,6 +61,40 @@ class UnifiedOverlay(QWidget):
         self.circle_width = 100
         self.spacing = 40
 
+    def get_dynamic_color(self, ratio):
+        """Calculates color based on ratio: Green(1.0) -> Orange(0.5) -> Red(0.0)"""
+        if ratio > 0.5:
+            # Interpolate between Orange (at 0.5) and Green (at 1.0)
+            t = (ratio - 0.5) * 2  # Normalize to 0.0 - 1.0
+            r = int(
+                PAUSE_ARC_COLOR.red() * (1 - t)
+                + PROGRESS_START_ARC_COLOR.red() * t
+            )
+            g = int(
+                PAUSE_ARC_COLOR.green() * (1 - t)
+                + PROGRESS_START_ARC_COLOR.green() * t
+            )
+            b = int(
+                PAUSE_ARC_COLOR.blue() * (1 - t)
+                + PROGRESS_START_ARC_COLOR.blue() * t
+            )
+        else:
+            # Interpolate between Red (at 0.0) and Orange (at 0.5)
+            t = ratio * 2  # Normalize to 0.0 - 1.0
+            r = int(
+                PROGRESS_COMPLETE_ARC_COLOR.red() * (1 - t)
+                + PAUSE_ARC_COLOR.red() * t
+            )
+            g = int(
+                PROGRESS_COMPLETE_ARC_COLOR.green() * (1 - t)
+                + PAUSE_ARC_COLOR.green() * t
+            )
+            b = int(
+                PROGRESS_COMPLETE_ARC_COLOR.blue() * (1 - t)
+                + PAUSE_ARC_COLOR.blue() * t
+            )
+        return QColor(r, g, b)
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -99,11 +134,16 @@ class UnifiedOverlay(QWidget):
 
             # 2. Progress Arc
             if timer.is_running and timer.max_sec > 0:
+                ratio = timer.current_sec / timer.max_sec
                 progress = (timer.current_sec / timer.max_sec) * 360
-                pen = QPen(
-                    PAUSE_ARC_COLOR if timer.is_paused else PROGRESS_ARC_COLOR,
-                    RING_PEN_WIDTH,
-                )
+
+                # Use pause color if paused, otherwise use dynamic gradient
+                if timer.is_paused:
+                    arc_color = PAUSE_ARC_COLOR
+                else:
+                    arc_color = self.get_dynamic_color(ratio)
+
+                pen = QPen(arc_color, RING_PEN_WIDTH)
                 pen.setCapStyle(Qt.PenCapStyle.RoundCap)
                 painter.setPen(pen)
                 painter.drawArc(rect, 90 * 16, int(-progress * 16))
