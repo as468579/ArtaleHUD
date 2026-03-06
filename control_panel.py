@@ -58,7 +58,7 @@ class ControlPanel(QWidget):
             group.setLayout(g_layout)
             layout.addWidget(group)
 
-        self.apply_btn = QPushButton("Reset All Timers")
+        self.apply_btn = QPushButton("Configure && Reset All Timers")
         self.apply_btn.setFixedHeight(40)
         self.apply_btn.clicked.connect(self.setup_overlay)
 
@@ -79,16 +79,14 @@ class ControlPanel(QWidget):
         """
         )
 
-        # self.stop_btn = QPushButton("Stop All Timers")
-        # self.stop_btn.setFixedHeight(40)
-        # self.stop_btn.clicked.connect(self.stop_all)
-
         font = QFont("Arial", BUTTON_FONT_SIZE, QFont.Weight.Bold)
         self.apply_btn.setFont(font)
 
         layout.addWidget(self.apply_btn)
-        # layout.addWidget(self.stop_btn)
         self.setLayout(layout)
+
+        # Automatically initialize overlay settings on startup
+        self.setup_overlay()
 
     def setup_overlay(self):
         self.stop_all()
