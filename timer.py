@@ -94,6 +94,8 @@ class Timer:
                 if self.is_running and self.current_sec < 0:
 
                     if not self.is_repeating:
+                        if self.play_alarm_on_timeout:
+                            winsound.Beep(800, 300)  # Beep when timer reaches 0
                         break
 
                     # Auto reset
