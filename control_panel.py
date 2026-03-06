@@ -1,8 +1,12 @@
+import json
+import os
+
 from pynput import keyboard
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QCheckBox,
+    QComboBox,
     QFormLayout,
     QGroupBox,
     QLineEdit,
@@ -26,7 +30,26 @@ class ControlPanel(QWidget):
         super().__init__()
         self.overlay = overlay
         self.hotkey_listener = None
+        self.presets = self.load_presets()
         self.init_ui()
+
+    def load_presets(self):
+        """
+        Load preset timer configurations from a JSON file.
+        Returns a dictionary of presets.
+        """
+        file_path = "presets.json"
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"Failed to load presets: {e}")
+
+        # Default fallback data if file is missing or corrupted
+        return {
+            "重複計時器": {"sec": "60", "play alarm": False, "repeat": True}
+        }
 
     def init_ui(self):
         self.setWindowTitle("Artale Unified Control")
@@ -37,24 +60,37 @@ class ControlPanel(QWidget):
         for key in ["F1", "F2", "F3", "F4"]:
             group = QGroupBox(f"Hotkey {key}")
             g_layout = QFormLayout()
-            name_in = QLineEdit()
-            name_in.setText(f"{key}")
+
+            name_combo = QComboBox()
+            # Allows users to type custom names not present in the dropdown list
+            name_combo.setEditable(True)
+            name_combo.addItems(list(self.presets.keys()))
+
             sec_in = QLineEdit()
-            sec_in.setText("60")
             playalarm_checkbox = QCheckBox("Play alarm on timeout")
-            playalarm_checkbox.setChecked(False)
             repeat_checkbox = QCheckBox("Repeat this timer")
-            repeat_checkbox.setChecked(True)
-            g_layout.addRow("Name:", name_in)
+
+            # Connect signal to update other fields when a preset is selected
+            # Use a lambda to pass the specific hotkey key to the handler
+            name_combo.currentTextChanged.connect(
+                lambda text, ky=key.lower(): self.on_preset_changed(ky, text)
+            )
+
+            g_layout.addRow("Name:", name_combo)
             g_layout.addRow("Inerval (sec):", sec_in)
             g_layout.addRow("", playalarm_checkbox)
             g_layout.addRow("", repeat_checkbox)
+
             self.inputs[key.lower()] = {
-                "name": name_in,
+                "combo": name_combo,
                 "sec": sec_in,
                 "play alarm": playalarm_checkbox,
                 "repeat": repeat_checkbox,
             }
+
+            # Trigger initial fill-in based on the first item in the combo box
+            self.on_preset_changed(key.lower(), name_combo.currentText())
+
             group.setLayout(g_layout)
             layout.addWidget(group)
 
@@ -65,42 +101,64 @@ class ControlPanel(QWidget):
         self.apply_btn.setStyleSheet(
             """
             QPushButton {
-                background-color: black;   /* 黑底 */
-                color: white;              /* 白字 */
-                border-radius: 10px;       /* 圓角，可選 */
-                border: 2px solid white;   /* 白色邊框，可選 */
+                background-color: black; 
+                color: white;
+                border-radius: 10px;
+                border: 2px solid white;
             }
             QPushButton:hover {
-                background-color: #444444; /* 滑鼠經過，稍亮 */
+                background-color: #444444;
             }
             QPushButton:pressed {
-                background-color: #999999; /* 點擊效果，更亮 */
+                background-color: #999999;
             }
         """
         )
 
-        font = QFont("Arial", BUTTON_FONT_SIZE, QFont.Weight.Bold)
-        self.apply_btn.setFont(font)
+        self.apply_btn.setFont(
+            QFont("Arial", BUTTON_FONT_SIZE, QFont.Weight.Bold)
+        )
 
         layout.addWidget(self.apply_btn)
         self.setLayout(layout)
 
-        # Automatically initialize overlay settings on startup
+        # Initialize overlay settings on startup
         self.setup_overlay()
 
+    def on_preset_changed(self, key, text):
+        """
+        Automatically fill in Interval, Alarm, and Repeat fields
+        when a matching preset name is selected or typed.
+        """
+        if text in self.presets:
+            data = self.presets[text]
+            fields = self.inputs[key]
+            fields["sec"].setText(str(data.get("sec", "60")))
+            fields["play alarm"].setChecked(data.get("play alarm", False))
+            fields["repeat"].setChecked(data.get("repeat", True))
+
     def setup_overlay(self):
+        """
+        Apply current UI settings to the overlay and restart hotkey listener.
+        """
         self.stop_all()
         self.overlay.timers_list = []
         for key, fields in self.inputs.items():
             try:
-                name = fields["name"].text()
+                name = fields["combo"].currentText()
                 sec = int(fields["sec"].text())
                 play_alarm_on_timeout = fields["play alarm"].isChecked()
                 is_repeating = fields["repeat"].isChecked()
-                self.overlay.timers_list.append(
-                    Timer(key, name, sec, play_alarm_on_timeout, is_repeating)
-                )
+
+                # Only add timers that have a name
+                if name.strip():
+                    self.overlay.timers_list.append(
+                        Timer(
+                            key, name, sec, play_alarm_on_timeout, is_repeating
+                        )
+                    )
             except:
+                # Skip if interval is not a valid integer
                 continue
 
         # Adjust overlay width based on number of timers
@@ -128,21 +186,14 @@ class ControlPanel(QWidget):
                 return
             for timer in self.overlay.timers_list:
                 if timer.key == k.lower():
-
                     timer.stop()
-
                     fields = self.inputs[timer.key]
-                    name = fields["name"].text()
-                    sec = int(fields["sec"].text())
-                    play_alarm_on_timeout = fields["play alarm"].isChecked()
-                    is_repeating = fields["repeat"].isChecked()
-
                     timer.reset(
                         timer.key,
-                        name,
-                        sec,
-                        play_alarm_on_timeout,
-                        is_repeating,
+                        fields["combo"].currentText(),
+                        int(fields["sec"].text()),
+                        fields["play alarm"].isChecked(),
+                        fields["repeat"].isChecked(),
                     )
                     timer.start()
 
