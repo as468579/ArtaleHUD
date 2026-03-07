@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
 )
 
 from timer import Timer
+from utils import get_resource_path
 
 # =========================
 # Colors & Styles
@@ -32,8 +33,10 @@ class ControlPanel(QWidget):
         self.hotkey_listener = None
 
         # Load both preset database and initial configuration
-        self.presets = self.load_json("presets.json", {})
-        self.initial_config = self.load_json("config.json", {})
+        self.presets = self.load_json(get_resource_path("presets.json"), {})
+        self.initial_config = self.load_json(
+            get_resource_path("config.json"), {}
+        )
 
         self.init_ui()
 

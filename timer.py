@@ -5,6 +5,8 @@ import winsound
 from PyQt6.QtCore import QObject, QUrl, pyqtSignal
 from PyQt6.QtMultimedia import QSoundEffect
 
+from utils import get_resource_path
+
 
 class Timer(QObject):
     """Single timer that supports start, stop, pause, resume, toggle"""
@@ -37,7 +39,7 @@ class Timer(QObject):
         self._elapsed_before_pause = 0
 
         self.alarm = QSoundEffect()
-        self.alarm.setSource(QUrl.fromLocalFile("beep.wav"))
+        self.alarm.setSource(QUrl.fromLocalFile(get_resource_path("beep.wav")))
         self.alarm.setVolume(0.8)
         self.alarm_signal.connect(self.alarm.play)
 

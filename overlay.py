@@ -3,6 +3,7 @@ from PyQt6.QtGui import QColor, QFont, QFontDatabase, QPainter, QPen
 from PyQt6.QtWidgets import QWidget
 
 from timer import Timer
+from utils import get_resource_path
 
 # =========================
 # Colors & Styles
@@ -51,7 +52,9 @@ class UnifiedOverlay(QWidget):
 
         self.font_family = QFontDatabase.applicationFontFamilies(
             QFontDatabase.addApplicationFont(
-                "fonts/Noto_Sans_TC/static/NotoSansTC-ExtraBold.ttf"
+                get_resource_path(
+                    "fonts/Noto_Sans_TC/static/NotoSansTC-ExtraBold.ttf"
+                )
             )
         )[0]
 
