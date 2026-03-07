@@ -8,5 +8,15 @@
         "sec": "45",
         "play alarm": true,
         "repeat": false
+    },
+    "時間魔方": {
+        "sec": "150",
+        "play alarm": false,
+        "repeat": true
+    },
+    "黑水(炎魔)": {
+        "sec": "40",
+        "play alarm": false,
+        "repeat": false
     }
 }
