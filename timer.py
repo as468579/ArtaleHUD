@@ -2,9 +2,14 @@ import threading
 import time
 import winsound
 
+from PyQt6.QtCore import QObject, QUrl, pyqtSignal
+from PyQt6.QtMultimedia import QSoundEffect
 
-class Timer:
+
+class Timer(QObject):
     """Single timer that supports start, stop, pause, resume, toggle"""
+
+    alarm_signal = pyqtSignal()
 
     def __init__(
         self,
@@ -14,6 +19,8 @@ class Timer:
         play_alarm_on_timeout=False,
         is_repeating=False,
     ):
+        super().__init__()
+
         self.key = key  # Hotkey assigned to this timer (e.g., 'f1')
         self.name = name  # Display name
         self.max_sec = max_sec  # Maximum duration in seconds
@@ -28,6 +35,11 @@ class Timer:
 
         self._start_time = 0
         self._elapsed_before_pause = 0
+
+        self.alarm = QSoundEffect()
+        self.alarm.setSource(QUrl.fromLocalFile("beep.wav"))
+        self.alarm.setVolume(0.8)
+        self.alarm_signal.connect(self.alarm.play)
 
     def reset(self, key, name, max_sec, play_alarm_on_timeout, is_repeating):
         self.key = key  # Hotkey assigned to this timer (e.g., 'f1')
@@ -93,19 +105,19 @@ class Timer:
 
                 if self.is_running and self.current_sec < 0:
 
+                    if self.is_repeating:
+                        # Auto reset
+                        self._start_time = time.perf_counter()
+                        self._elapsed_before_pause = 0
+                        self.current_sec = self.max_sec
+
+                    # All operation needs to be placed after reset to prevent driff accumulation
+                    if self.play_alarm_on_timeout:
+                        self.alarm_signal.emit()  # Beep when timer reaches 0
+
                     if not self.is_repeating:
-                        if self.play_alarm_on_timeout:
-                            winsound.Beep(800, 300)  # Beep when timer reaches 0
                         break
 
-                    # Auto reset
-                    self._start_time = time.perf_counter()
-                    self._elapsed_before_pause = 0
-                    self.current_sec = self.max_sec
-
-                    # High I/O operation needs to be placed after reset
-                    if self.play_alarm_on_timeout:
-                        winsound.Beep(800, 300)  # Beep when timer reaches 0
             else:
                 time.sleep(
                     self._delta
