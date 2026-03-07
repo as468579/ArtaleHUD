@@ -35,8 +35,8 @@ class Timer(QObject):
         self._thread = None  # Internal thread for countdown
         self._delta = 0.1
 
-        self._start_time = 0
-        self._elapsed_before_pause = 0
+        self._next_time = 0  # The exact 'time.perf_counter()' when timer hits 0
+        self._remaining_at_pause = 0  # Seconds left when the timer was paused
 
         self.alarm = QSoundEffect()
         self.alarm.setSource(QUrl.fromLocalFile(get_resource_path("beep.wav")))
@@ -44,6 +44,9 @@ class Timer(QObject):
         self.alarm_signal.connect(self.alarm.play)
 
     def reset(self, key, name, max_sec, play_alarm_on_timeout, is_repeating):
+        """Reset timer configurations."""
+        self.stop()
+
         self.key = key  # Hotkey assigned to this timer (e.g., 'f1')
         self.name = name  # Display name
         self.max_sec = max_sec  # Maximum duration in seconds
@@ -53,12 +56,12 @@ class Timer(QObject):
 
     def start(self):
         """Start the timer. If the thread doesn't exist, create it."""
-        self._elapsed_before_pause = 0
-        self._start_time = time.perf_counter()
-
+        self._next_time = time.perf_counter() + self.max_sec
+        self._remaining_at_pause = 0
         self.current_sec = self.max_sec
         self.is_running = True
         self.is_paused = False
+
         if not self._thread or not self._thread.is_alive():
             self._thread = threading.Thread(target=self._run, daemon=True)
             self._thread.start()
@@ -66,23 +69,23 @@ class Timer(QObject):
     def pause(self):
         """Pause the timer."""
         if self.is_running and not self.is_paused:
-            self._elapsed_before_pause += time.perf_counter() - self._start_time
-            self._start_time = time.perf_counter()
+            self._remaining_at_pause = self._next_time - time.perf_counter()
             self.is_paused = True
 
     def resume(self):
         """Resume the timer if it was paused."""
         if self.is_running and self.is_paused:
-            self._start_time = time.perf_counter()
+            self._next_time = time.perf_counter() + self._remaining_at_pause
+            self._remaining_at_pause = 0
             self.is_paused = False
 
     def stop(self):
         """Stop the timer and reset to max_sec."""
-        self._elapsed_before_pause = 0
-        self._start_time = 0
+        self._next_time = 0
+        self._remaining_at_pause = 0
         self.is_running = False
         self.is_paused = False
-        self.current_sec = self._delta
+        self.current_sec = 0
 
     def toggle(self):
         """Toggle between pause and resume (or start if not running)."""
@@ -97,33 +100,28 @@ class Timer(QObject):
     # -------- Internal Thread Logic --------
     def _run(self):
         """Internal countdown logic running in a separate thread."""
-        while self.is_running and self.current_sec > 0:
+        while self.is_running:
             if not self.is_paused:
-                time.sleep(self._delta)  # High precision countdown
-                elapsed = self._elapsed_before_pause + (
-                    time.perf_counter() - self._start_time
-                )
-                self.current_sec = self.max_sec - elapsed
+                self.current_sec = self._next_time - time.perf_counter()
 
-                if self.is_running and self.current_sec < 0:
+                # Check if timer has expired
+                if self.current_sec <= 0:
+                    if self.play_alarm_on_timeout:
+                        self.alarm_signal.emit()
 
                     if self.is_repeating:
-                        # Auto reset
-                        self._start_time = time.perf_counter()
-                        self._elapsed_before_pause = 0
-                        self.current_sec = self.max_sec
+                        # IMPORTANT: Increment the next timestamp by max_sec.
+                        # Do NOT use 'time.perf_counter() + max_sec' here,
+                        # because adding to the old target fixes any loop processing delays.
+                        self._next_time += self.max_sec
+                        self._remaining_at_pause = 0
 
-                    # All operation needs to be placed after reset to prevent driff accumulation
-                    if self.play_alarm_on_timeout:
-                        self.alarm_signal.emit()  # Beep when timer reaches 0
-
-                    if not self.is_repeating:
+                    else:
+                        self.current_sec = 0
+                        self.is_running = False
                         break
 
-            else:
-                time.sleep(
-                    self._delta
-                )  # Sleep while paused to reduce CPU usage
+            time.sleep(self._delta)
 
         self.is_running = False
         self.is_paused = False
