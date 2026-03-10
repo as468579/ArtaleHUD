@@ -1,6 +1,5 @@
 import threading
 import time
-import winsound
 
 from PyQt6.QtCore import QObject, QUrl, pyqtSignal
 from PyQt6.QtMultimedia import QSoundEffect
