@@ -55,6 +55,7 @@ jobs:
           python setup.py --target_os=${{ matrix.target }}
 
       - name: Create GitHub Release and Upload Artifacts
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           # This will upload the compiled files to the Release page
