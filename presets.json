@@ -18,5 +18,15 @@
         "sec": "40",
         "play alarm": false,
         "repeat": false
+    },
+    "黑水(困拉)": {
+        "sec": "70",
+        "play alarm": false,
+        "repeat": false
+    },
+    "黑球": {
+        "sec": "90",
+        "play alarm": false,
+        "repeat": false
     }
 }
