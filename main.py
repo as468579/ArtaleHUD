@@ -1,7 +1,7 @@
 import os
 import sys
 
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QFontDatabase
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
@@ -12,9 +12,10 @@ from PyQt6.QtWidgets import (
 )
 
 from control_panel import ControlPanel
+from hotkey_listener import HotkeyListener
 from overlay import UnifiedOverlay
 from utils import get_resource_path
-from hotkey_listener import HotkeyListener
+
 
 class LicenseDialog(QDialog):
     def __init__(self, parent=None):
@@ -28,10 +29,12 @@ class LicenseDialog(QDialog):
         self.text = QTextBrowser()
         self.text.setReadOnly(True)
 
-        font = QFont("Consolas")
-        font.setPointSize(11)
-        self.text.setFont(font)
+        if "Consolas" in QFontDatabase.families():
+            font = QFont("Consolas", 12)
+        else:
+            font = QFont("Menlo", 15)
 
+        self.text.setFont(font)
         self.text.setStyleSheet(
             """
             QTextBrowser {
@@ -108,7 +111,7 @@ if __name__ == "__main__":
     # On Windows, start listening after the dialog is completed
     if sys.platform == "win32":
         hotkey_listener = HotkeyListener()
-        hotkey_listener.start()        
+        hotkey_listener.start()
 
     overlay = UnifiedOverlay()
     panel = ControlPanel(overlay, hotkey_listener)
