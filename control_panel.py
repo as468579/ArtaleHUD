@@ -27,10 +27,11 @@ BUTTON_FONT_SIZE = 14
 
 
 class ControlPanel(QWidget):
-    def __init__(self, overlay):
+    def __init__(self, overlay, hotkey_listener):
         super().__init__()
         self.overlay = overlay
-        self.hotkey_listener = None
+        self.hotkey_listener = hotkey_listener
+        self.hotkey_listener.hotkey_pressed.connect(self.handle_hotkey_signal)
 
         # Load both preset database and initial configuration
         self.presets = self.load_json(get_resource_path("presets.json"), {})
@@ -39,6 +40,30 @@ class ControlPanel(QWidget):
         )
 
         self.init_ui()
+
+    def handle_hotkey_signal(self, key):
+        """
+        Processes the key press event. This slot runs on the Main Thread,
+        ensuring thread-safe updates to UI and QTimers.
+        """
+        for timer in self.overlay.timers_list:
+            if timer.key == key:
+                timer.stop()
+                fields = self.inputs[timer.key]
+
+                try:
+                    # Fetch latest parameters from UI fields
+                    name = fields["combo"].currentText()
+                    sec = int(fields["sec"].text())
+                    play_alarm = fields["play alarm"].isChecked()
+                    repeat = fields["repeat"].isChecked()
+
+                    # Reset and restart the specific timer
+                    timer.reset(timer.key, name, sec, play_alarm, repeat)
+                    timer.start()
+                except (ValueError, KeyError):
+                    # Handle invalid inputs gracefully
+                    continue
 
     def load_json(self, filename, default_val):
         """Helper to load JSON data with a fallback."""
@@ -171,35 +196,7 @@ class ControlPanel(QWidget):
             + (num_timers - 1) * self.overlay.spacing
         )
         self.overlay.setFixedWidth(max(new_width, 150))
-        self.overlay.show()
-
-        if self.hotkey_listener:
-            self.hotkey_listener.stop()
-        self.start_listener()
 
     def stop_all(self):
         for timer in self.overlay.timers_list:
             timer.stop()
-
-    def start_listener(self):
-        def on_press(key):
-            try:
-                k = key.fkey.name if hasattr(key, "fkey") else key.name
-            except:
-                return
-            for timer in self.overlay.timers_list:
-                if timer.key == k.lower():
-                    timer.stop()
-                    fields = self.inputs[timer.key]
-                    timer.reset(
-                        timer.key,
-                        fields["combo"].currentText(),
-                        int(fields["sec"].text()),
-                        fields["play alarm"].isChecked(),
-                        fields["repeat"].isChecked(),
-                    )
-                    timer.start()
-
-        self.hotkey_listener = keyboard.Listener(on_press=on_press)
-        self.hotkey_listener.daemon = True
-        self.hotkey_listener.start()

@@ -14,35 +14,7 @@ from PyQt6.QtWidgets import (
 from control_panel import ControlPanel
 from overlay import UnifiedOverlay
 from utils import get_resource_path
-
-# def show_license():
-#     """
-#     Reads the LICENSE.txt file and displays it in a modal dialog.
-#     Ensures users are aware of the Non-Commercial Clause before use.
-#     """
-#     # Get the correct path for the license file, compatible with PyInstaller
-#     license_path = get_resource_path("LICENSE.txt")
-
-#     license_content = "License file not found."
-#     if os.path.exists(license_path):
-#         try:
-#             with open(license_path, "r", encoding="utf-8") as f:
-#                 license_content = f.read()
-#         except Exception as e:
-#             license_content = f"Error reading license: {e}"
-
-#     # Create and configure the message box
-#     msg = QMessageBox()
-#     msg.setWindowTitle("License Agreement")
-#     msg.setText("Software Terms and Conditions")
-
-#     # Using informative text for the long license content
-#     msg.setInformativeText(license_content)
-#     msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-#     msg.setIcon(QMessageBox.Icon.Information)
-#     # msg.setStyleSheet("QLabel{min-width: 300px;}")
-#     msg.exec()
-
+from hotkey_listener import HotkeyListener
 
 class LicenseDialog(QDialog):
     def __init__(self, parent=None):
@@ -121,15 +93,27 @@ class LicenseDialog(QDialog):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    # Show the license dialog before launching the main UI [cite: 4]
-    # show_license()
-
+    # Show the license dialog before launching the main UI
     dialog = LicenseDialog()
+    hotkey_listener = HotkeyListener()
+
+    # On macOS, start listening before dialog.exec() because pynput's listener
+    # thread may conflict with Qt's event loop during initialization.
+    if sys.platform == "darwin":
+        hotkey_listener.start()
+
     if dialog.exec() != QDialog.DialogCode.Accepted:
         sys.exit(0)
 
+    # On Windows, start listening after the dialog is completed
+    if sys.platform == "win32":
+        hotkey_listener = HotkeyListener()
+        hotkey_listener.start()        
+
     overlay = UnifiedOverlay()
-    panel = ControlPanel(overlay)
+    panel = ControlPanel(overlay, hotkey_listener)
+
+    overlay.show()
     panel.show()
 
     sys.exit(app.exec())
