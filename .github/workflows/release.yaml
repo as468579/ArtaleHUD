@@ -50,6 +50,14 @@ jobs:
           pip install -r requirements.txt
         shell: bash
 
+      - name: Show Build Note
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Build note: ${{ github.event.inputs.release_note }}"
+          else
+            echo "Build note: Tag build: ${{ github.ref_name }}"
+          fi
+
       - name: Execute Build Script
         run: |
           python setup.py --target_os=${{ matrix.target }}
