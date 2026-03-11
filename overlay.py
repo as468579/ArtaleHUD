@@ -1,3 +1,5 @@
+import sys
+
 from PyQt6.QtCore import QRectF, Qt, QTimer
 from PyQt6.QtGui import QColor, QFont, QFontDatabase, QPainter, QPen
 from PyQt6.QtWidgets import QWidget
@@ -43,7 +45,12 @@ class UnifiedOverlay(QWidget):
             | Qt.WindowType.WindowStaysOnTopHint
             | Qt.WindowType.Tool
         )
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+
+        # Ensure the window remains visible on macOS when the app loses focus
+        if sys.platform == "darwin":
+            self.setAttribute(Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow, True)
 
         # Internal timer to refresh the UI smoothly (60 FPS)
         self.refresh_timer = QTimer()
