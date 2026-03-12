@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 
 from pynput import keyboard
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -30,10 +31,10 @@ class HotkeySetterButton(QPushButton):
     changed = pyqtSignal(str)
 
     QT_TO_PYNPUT = {
-        Qt.Key.Key_Control: "ctrl",
+        Qt.Key.Key_Control: "ctrl" if sys.platform != "darwin" else "cmd",
         Qt.Key.Key_Shift: "shift",
         Qt.Key.Key_Alt: "alt",
-        Qt.Key.Key_Meta: "cmd",
+        Qt.Key.Key_Meta: "cmd" if sys.platform != "darwin" else "ctrl",
         Qt.Key.Key_Space: "space",
         Qt.Key.Key_Enter: "enter",
         Qt.Key.Key_Return: "enter",
