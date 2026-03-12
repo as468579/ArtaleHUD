@@ -47,6 +47,8 @@ class HotkeyListener(QObject):
                 k = "ctrl"
             elif "alt" in k:
                 k = "alt"
+            elif "\\\\" == k:
+                k = "\\"
             elif k.startswith("<") and k.endswith(">"):
                 value = int(k[1:-1])
                 if value == 110:
