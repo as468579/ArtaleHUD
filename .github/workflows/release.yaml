@@ -27,10 +27,10 @@ jobs:
         include:
           - os: windows-latest
             target: win
-            artifact_name: ArtaleHUD.exe
+            artifact_name: ArtaleHUD-win.exe
           - os: macos-latest
             target: mac
-            artifact_name: ArtaleHUD
+            artifact_name: ArtaleHUD-mac
 
     runs-on: ${{ matrix.os }}
 

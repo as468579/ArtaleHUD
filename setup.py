@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 
 import PyInstaller.__main__
 
@@ -15,7 +16,6 @@ def run_build(target_os):
     # Base parameters common to both platforms
     params = [
         "main.py",
-        f"--name={APP_NAME}",
         "--noconsole",
         "--onefile",
         "--clean",
@@ -24,9 +24,13 @@ def run_build(target_os):
     # MacOS specific configuration
     if target_os == "mac":
         print(f"--- Building for macOS ---")
+
+        output_name = f"{APP_NAME}-mac"
+
         # macOS uses colon ':' as separator
         params.extend(
             [
+                f"--name={APP_NAME}-Mac",
                 "--windowed",  # Added --windowed to create a .app bundle
                 "--add-data=config.json:.",
                 "--add-data=presets.json:.",
@@ -37,9 +41,13 @@ def run_build(target_os):
         )
     elif target_os == "win":
         print(f"--- Building for Windows ---")
+
+        output_name = f"{APP_NAME}-win"
+
         # Windows uses semicolon ';' as separator
         params.extend(
             [
+                f"--name={APP_NAME}-Win",
                 "--add-data=config.json;.",
                 "--add-data=presets.json;.",
                 "--add-data=beep.wav;.",
@@ -54,6 +62,8 @@ def run_build(target_os):
 
     # Execute PyInstaller with the defined parameters
     PyInstaller.__main__.run(params)
+
+    return output_name
 
 
 if __name__ == "__main__":
@@ -70,7 +80,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print(f"Starting build process for {APP_NAME}...")
-    run_build(args.target_os)
+    output_name = run_build(args.target_os)
 
     print("-" * 30)
-    print(f"Build finished! Check the 'dist' folder for {APP_NAME}.exe")
+    print(f"Build finished! Check the 'dist' folder for {output_name}")
