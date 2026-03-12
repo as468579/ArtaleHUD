@@ -1,11 +1,13 @@
 from pynput import keyboard
 from PyQt6.QtCore import QObject, pyqtSignal
 
+
 class HotkeyListener(QObject):
     """
-    A standalone listener that monitors global key presses and 
+    A standalone listener that monitors global key presses and
     notifies the application via Qt Signals.
     """
+
     # Define a signal that carries the key in a lower case as a string
     hotkey_pressed = pyqtSignal(str)
 
@@ -38,9 +40,21 @@ class HotkeyListener(QObject):
                 k = key.name
             else:
                 k = str(key).strip("'")
-            
+
+            if "shift" in k:
+                k = "shift"
+            elif "ctrl" in k:
+                k = "ctrl"
+            elif "alt" in k:
+                k = "alt"
+            elif k.startswith("<") and k.endswith(">"):
+                value = int(k[1:-1])
+                if value == 110:
+                    k = "."
+                else:
+                    k = str(value - 96)
+
             # Emit signal to the main thread
             self.hotkey_pressed.emit(k.lower())
         except Exception as e:
             print(f"Hotkey listener error: {e}")
-    
