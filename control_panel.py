@@ -35,8 +35,8 @@ class ControlPanel(QWidget):
 
         # Load both preset database and initial configuration
         self.presets = self.load_json(get_resource_path("presets.json"), {})
-        self.initial_config = self.load_json(
-            get_resource_path("config.json"), {}
+        self.defaults = self.load_json(
+            get_resource_path("panel_defaults.json"), {}
         )
 
         self.init_ui()
@@ -95,8 +95,8 @@ class ControlPanel(QWidget):
             playalarm_checkbox = QCheckBox("Play alarm on timeout")
             repeat_checkbox = QCheckBox("Repeat this timer")
 
-            # Load initial values from config.json if available
-            conf = self.initial_config.get(unique_key, {})
+            # Load initial values from panel_default.json if available
+            conf = self.defaults.get(unique_key, {})
             name_combo.setCurrentText(conf.get("name", key))
             sec_in.setText(str(conf.get("sec", "60")))
             playalarm_checkbox.setChecked(conf.get("play alarm", False))

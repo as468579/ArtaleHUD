@@ -32,7 +32,7 @@ def run_build(target_os):
             [
                 f"--name={APP_NAME}-Mac",
                 "--windowed",  # Added --windowed to create a .app bundle
-                "--add-data=config.json:.",
+                "--add-data=panel_defaults.json:.",
                 "--add-data=presets.json:.",
                 "--add-data=beep.wav:.",
                 "--add-data=LICENSE.txt:.",
@@ -48,7 +48,7 @@ def run_build(target_os):
         params.extend(
             [
                 f"--name={APP_NAME}-Win",
-                "--add-data=config.json;.",
+                "--add-data=panel_defaults.json;.",
                 "--add-data=presets.json;.",
                 "--add-data=beep.wav;.",
                 "--add-data=LICENSE.txt;.",
