@@ -18,3 +18,9 @@ def get_resource_path(relative_path):
         base_path = os.path.dirname(os.path.abspath(__file__))
 
     return os.path.join(base_path, relative_path)
+
+
+# File names
+PRESETS_FILE = get_resource_path("presets.json")
+PANEL_DEFAULTS_FILE = get_resource_path("panel_defaults.json")
+BEEP_FILE = get_resource_path("beep.wav")

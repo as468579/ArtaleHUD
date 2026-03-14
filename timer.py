@@ -4,7 +4,7 @@ import time
 from PyQt6.QtCore import QObject, QUrl, pyqtSignal
 from PyQt6.QtMultimedia import QSoundEffect
 
-from utils import get_resource_path
+from utils import BEEP_FILE
 
 
 class Timer(QObject):
@@ -38,7 +38,7 @@ class Timer(QObject):
         self._remaining_at_pause = 0  # Seconds left when the timer was paused
 
         self.alarm = QSoundEffect()
-        self.alarm.setSource(QUrl.fromLocalFile(get_resource_path("beep.wav")))
+        self.alarm.setSource(QUrl.fromLocalFile(BEEP_FILE))
         self.alarm.setVolume(0.8)
         self.alarm_signal.connect(self.alarm.play)
 

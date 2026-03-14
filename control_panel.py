@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
 )
 
 from timer import Timer
-from utils import get_resource_path
+from utils import PANEL_DEFAULTS_FILE, PRESETS_FILE
 
 # =========================
 # Colors & Styles
@@ -133,16 +133,14 @@ class ControlPanel(QWidget):
         self.hotkey_listener.hotkey_pressed.connect(self.handle_hotkey_signal)
 
         # Load both preset database and initial configuration
-        self.presets = self.load_json(get_resource_path("presets.json"), {})
-        self.defaults = self.load_json(
-            get_resource_path("panel_defaults.json"), []
-        )
+        self.presets = self.load_json(PRESETS_FILE, {})
+        self.defaults = self.load_json(PANEL_DEFAULTS_FILE, [])
 
         self.init_ui()
 
     def save_to_defaults(self):
         """
-        Collects current UI values and saves them to panel_defaults.json.
+        Collects current UI values and saves them to |PANEL_DEFAULTS_FILE|.
         This allows the app to persist the current setup across sessions.
         """
 
@@ -163,11 +161,10 @@ class ControlPanel(QWidget):
             )
 
         # Write to JSON file
-        file_path = get_resource_path("panel_defaults.json")
         try:
-            with open(file_path, "w", encoding="utf-8") as f:
+            with open(PANEL_DEFAULTS_FILE, "w", encoding="utf-8") as f:
                 json.dump(save_data, f, indent=4, ensure_ascii=False)
-            print(f"Settings successfully saved to {file_path}")
+            print(f"Successfully save settings.")
         except Exception as e:
             print(f"Failed to save settings: {e}")
 
@@ -219,7 +216,7 @@ class ControlPanel(QWidget):
             hotkey_btn = HotkeySetterButton(key)
             hotkey_btn.setMinimumWidth(120)
 
-            # Load initial values from panel_default.json if available
+            # Load initial values from |PANEL_DEFAULTS_FILE| if available
             try:
                 field = self.defaults.get("fields", [])[index]
             except IndexError:
