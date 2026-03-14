@@ -1,6 +1,6 @@
 import sys
 
-from PyQt6.QtCore import QRectF, Qt, QTimer, pyqtSignal
+from PyQt6.QtCore import QRectF, Qt, QTimer
 from PyQt6.QtGui import QColor, QFont, QFontDatabase, QPainter, QPen
 from PyQt6.QtWidgets import QWidget
 
@@ -34,8 +34,6 @@ SEC_FONT_SIZE = 15
 class UnifiedOverlay(QWidget):
     """A single transparent window that contains multiple circular timers."""
 
-    timer_clicked = pyqtSignal(int)
-
     def __init__(self):
         super().__init__()
         self.timers_list = []  # List of Timer objects
@@ -52,9 +50,7 @@ class UnifiedOverlay(QWidget):
 
         # Ensure the window remains visible on macOS when the app loses focus
         if sys.platform == "darwin":
-            self.setAttribute(
-                Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow, True
-            )
+            self.setAttribute(Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow, True)
 
         # Internal timer to refresh the UI smoothly (60 FPS)
         self.refresh_timer = QTimer()
@@ -195,10 +191,8 @@ class UnifiedOverlay(QWidget):
             )
             start_x = (self.width() - total_width) // 2
 
-            for index, timer in enumerate(self.timers_list):
-                x_offset = start_x + (
-                    index * (self.circle_width + self.spacing)
-                )
+            for i, timer in enumerate(self.timers_list):
+                x_offset = start_x + (i * (self.circle_width + self.spacing))
                 rect = QRectF(
                     x_offset,
                     (self.height() - self.circle_width) // 2,
@@ -206,8 +200,7 @@ class UnifiedOverlay(QWidget):
                     self.circle_width,
                 )
                 if rect.contains(curr_pos):
-                    # Emit signal to toggle timer and sync settings from ControlPanel
-                    self.timer_clicked.emit(index)
+                    timer.toggle()  # Toggle the timer (pause/resume) when clicked
                     return  # Stop checking after the first timer that was clicked
 
             self.dragging = True
