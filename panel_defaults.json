@@ -1,9 +1,34 @@
 {
-    "hotkeys": ["f1", "f2", "none", "none"],
+    "hotkeys": [
+        "f1",
+        "f2",
+        "none",
+        "none"
+    ],
     "fields": [
-        {"name": "時間倒數", "sec": "10", "play alarm": false, "repeat": true},
-        {"name": "小怪重生", "sec": "45", "play alarm": true, "repeat": false},
-        {"name": "黑球重生", "sec": "90", "play alarm": false, "repeat": false},
-        {"name": "黑水(困拉)", "sec": "70", "play alarm": false, "repeat": false}
+        {
+            "name": "時間倒數",
+            "sec": "10",
+            "play alarm": false,
+            "repeat": true
+        },
+        {
+            "name": "小怪重生",
+            "sec": "45",
+            "play alarm": true,
+            "repeat": false
+        },
+        {
+            "name": "黑球重生",
+            "sec": "90",
+            "play alarm": false,
+            "repeat": false
+        },
+        {
+            "name": "黑水(困拉)",
+            "sec": "70",
+            "play alarm": false,
+            "repeat": false
+        }
     ]
 }

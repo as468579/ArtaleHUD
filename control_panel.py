@@ -140,6 +140,37 @@ class ControlPanel(QWidget):
 
         self.init_ui()
 
+    def save_to_defaults(self):
+        """
+        Collects current UI values and saves them to panel_defaults.json.
+        This allows the app to persist the current setup across sessions.
+        """
+
+        new_data = save_data = {"hotkeys": [], "fields": []}
+
+        for field in self.inputs:
+            # Store the hotkey string
+            new_data["hotkeys"].append(field["hotkey_btn"].key)
+
+            # Store the field configuration
+            new_data["fields"].append(
+                {
+                    "name": field["combo"].currentText(),
+                    "sec": field["sec"].text(),
+                    "play alarm": field["play alarm"].isChecked(),
+                    "repeat": field["repeat"].isChecked(),
+                }
+            )
+
+        # Write to JSON file
+        file_path = get_resource_path("panel_defaults.json")
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(save_data, f, indent=4, ensure_ascii=False)
+            print(f"Settings successfully saved to {file_path}")
+        except Exception as e:
+            print(f"Failed to save settings: {e}")
+
     def handle_hotkey_signal(self, key):
         """
         Processes the key press event. This slot runs on the Main Thread,
@@ -233,12 +264,7 @@ class ControlPanel(QWidget):
             group.setLayout(g_layout)
             layout.addWidget(group)
 
-        self.apply_btn = QPushButton("Configure && Reset All Timers")
-        self.apply_btn.setFixedHeight(40)
-        self.apply_btn.clicked.connect(self.setup_overlay)
-
-        self.apply_btn.setStyleSheet(
-            """
+        btn_style = """
             QPushButton {
                 background-color: black; 
                 color: white;
@@ -252,13 +278,26 @@ class ControlPanel(QWidget):
                 background-color: #999999;
             }
         """
-        )
 
+        self.apply_btn = QPushButton("Configure && Reset All Timers")
+        self.apply_btn.setFixedHeight(40)
+        self.apply_btn.clicked.connect(self.setup_overlay)
+
+        self.apply_btn.setStyleSheet(btn_style)
         self.apply_btn.setFont(
             QFont("Arial", BUTTON_FONT_SIZE, QFont.Weight.Bold)
         )
 
+        self.save_btn = QPushButton("Save Settings as Default")
+        self.save_btn.setFixedHeight(40)
+        self.save_btn.clicked.connect(self.save_to_defaults)
+        self.save_btn.setStyleSheet(btn_style)
+        self.save_btn.setFont(
+            QFont("Arial", BUTTON_FONT_SIZE, QFont.Weight.Bold)
+        )
+
         layout.addWidget(self.apply_btn)
+        layout.addWidget(self.save_btn)
         self.setLayout(layout)
 
         # Initialize overlay settings on startup
