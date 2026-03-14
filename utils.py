@@ -1,6 +1,27 @@
 import os
 import sys
 
+from PyQt6.QtGui import QFontDatabase
+
+
+def get_system_font():
+    """
+    Select an appropriate font based on the OS.
+    On macOS, prefer PingFang TC or Source Han Sans.
+    On Windows, prefer Microsoft JhengHei or Noto Sans TC.
+    Fallback to default sans-serif font if none is available.
+    """
+    if sys.platform == "darwin":  # macOS
+        preferred_fonts = ["PingFang TC", "Source Han Sans", "Heiti TC"]
+    else:  # Windows / Linux
+        preferred_fonts = ["Microsoft JhengHei", "Noto Sans TC", "SimHei"]
+
+    for f in preferred_fonts:
+        if f in QFontDatabase.families():
+            return f
+    # Fallback font
+    return "Sans Serif"
+
 
 def get_resource_path(relative_path):
     """

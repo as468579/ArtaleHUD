@@ -4,7 +4,7 @@ import sys
 
 from pynput import keyboard
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont, QKeyEvent
+from PyQt6.QtGui import QFont, QFontDatabase, QKeyEvent
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
 )
 
 from timer import Timer
-from utils import PANEL_DEFAULTS_FILE, PRESETS_FILE
+from utils import PANEL_DEFAULTS_FILE, PRESETS_FILE, get_system_font
 
 # =========================
 # Colors & Styles
@@ -139,6 +139,7 @@ class ControlPanel(QWidget):
         self.presets = self.load_json(PRESETS_FILE, {})
         self.defaults = self.load_json(PANEL_DEFAULTS_FILE, [])
 
+        self.setFont(QFont(get_system_font()))
         self.init_ui()
 
     def save_to_defaults(self):
@@ -217,7 +218,7 @@ class ControlPanel(QWidget):
         return default_val
 
     def init_ui(self):
-        self.setWindowTitle("Artale Unified Control")
+        self.setWindowTitle("Artale 計時器控制台")
         self.setGeometry(600, 100, 320, 500)
         layout = QVBoxLayout()
 
@@ -225,7 +226,7 @@ class ControlPanel(QWidget):
         hotkeys = self.defaults.get("hotkeys", ["F1", "F2", "F3", "F4"])
         for index, key in enumerate(hotkeys):
             key = key.lower()
-            group = QGroupBox(f"Timer {index+1}")
+            group = QGroupBox(f"計時器 {index+1}")
             g_layout = QFormLayout()
 
             hotkey_btn = HotkeySetterButton(key)
@@ -246,10 +247,10 @@ class ControlPanel(QWidget):
             sec_in = QLineEdit()
             sec_in.setText(str(field.get("sec", "60")))
 
-            playalarm_checkbox = QCheckBox("Play alarm on timeout")
+            playalarm_checkbox = QCheckBox("到時撥放音效")
             playalarm_checkbox.setChecked(field.get("play alarm", False))
 
-            repeat_checkbox = QCheckBox("Repeat this timer")
+            repeat_checkbox = QCheckBox("自動循環計時")
             repeat_checkbox.setChecked(field.get("repeat", False))
 
             # Connect signal to update other fields when a preset is selected
@@ -257,9 +258,9 @@ class ControlPanel(QWidget):
                 lambda text, idx=index: self.on_preset_changed(idx, text)
             )
 
-            g_layout.addRow("Hotkey:", hotkey_btn)
-            g_layout.addRow("Name:", name_combo)
-            g_layout.addRow("Inerval (sec):", sec_in)
+            g_layout.addRow("按鍵設定:", hotkey_btn)
+            g_layout.addRow("名稱:", name_combo)
+            g_layout.addRow("秒數 (sec):", sec_in)
             g_layout.addRow("", playalarm_checkbox)
             g_layout.addRow("", repeat_checkbox)
 
@@ -291,21 +292,21 @@ class ControlPanel(QWidget):
             }
         """
 
-        self.apply_btn = QPushButton("Configure && Reset All Timers")
+        self.apply_btn = QPushButton("套用設定並重置所有計時器")
         self.apply_btn.setFixedHeight(40)
         self.apply_btn.clicked.connect(self.setup_overlay)
 
         self.apply_btn.setStyleSheet(btn_style)
         self.apply_btn.setFont(
-            QFont("Arial", BUTTON_FONT_SIZE, QFont.Weight.Bold)
+            QFont(get_system_font(), BUTTON_FONT_SIZE, QFont.Weight.Bold)
         )
 
-        self.save_btn = QPushButton("Save Settings as Default")
+        self.save_btn = QPushButton("儲存設定為預設值")
         self.save_btn.setFixedHeight(40)
         self.save_btn.clicked.connect(self.save_to_defaults)
         self.save_btn.setStyleSheet(btn_style)
         self.save_btn.setFont(
-            QFont("Arial", BUTTON_FONT_SIZE, QFont.Weight.Bold)
+            QFont(get_system_font(), BUTTON_FONT_SIZE, QFont.Weight.Bold)
         )
 
         layout.addWidget(self.apply_btn)
