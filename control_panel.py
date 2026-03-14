@@ -181,6 +181,7 @@ class ControlPanel(QWidget):
             g_layout = QFormLayout()
 
             hotkey_btn = HotkeySetterButton(key)
+            hotkey_btn.setMinimumWidth(120)
 
             # Load initial values from panel_default.json if available
             try:
