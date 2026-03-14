@@ -1,5 +1,5 @@
 {
-    "hotkeys": ["f1", "f2", "f3", "f4"],
+    "hotkeys": ["f1", "f2", "none", "none"],
     "fields": [
         {"name": "時間倒數", "sec": "10", "play alarm": false, "repeat": true},
         {"name": "小怪重生", "sec": "45", "play alarm": true, "repeat": false},

@@ -59,8 +59,13 @@ class HotkeySetterButton(QPushButton):
         Qt.Key.Key_Backslash: "\\",
     }
 
-    def __init__(self, default_key="None"):
-        super().__init__(default_key.upper())
+    def __init__(self, default_key="NONE"):
+        text = (
+            default_key.upper()
+            if default_key.upper() != "NONE"
+            else "Press any key..."
+        )
+        super().__init__(text)
         self.setCheckable(True)
         self.key = default_key.lower()
         self.set_idle_style()
