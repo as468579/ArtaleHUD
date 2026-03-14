@@ -286,6 +286,9 @@ class Listener(ListenerMixin, _base.Listener):
             key = None
 
         try:
+            if key == Key.media_volume_up:
+                return
+
             if event_type == kCGEventKeyDown:
                 # This is a normal key press
                 self.on_press(key, injected)
