@@ -132,6 +132,9 @@ class ControlPanel(QWidget):
         self.hotkey_listener = hotkey_listener
         self.hotkey_listener.hotkey_pressed.connect(self.handle_hotkey_signal)
 
+        # Connect the click signal from overlay to the handler function
+        self.overlay.timer_clicked.connect(self.handle_timer_clicked_signal)
+
         # Load both preset database and initial configuration
         self.presets = self.load_json(PRESETS_FILE, {})
         self.defaults = self.load_json(PANEL_DEFAULTS_FILE, [])
@@ -190,6 +193,18 @@ class ControlPanel(QWidget):
                 except (ValueError, KeyError):
                     # Handle invalid inputs gracefully
                     continue
+
+    def handle_timer_clicked_signal(self, index):
+
+        field = self.inputs[index]
+        timer = self.overlay.timers_list[index]
+
+        # Toggle the timer (pause/resume) when clicked
+        timer.toggle()
+
+        # Update Timer object attributes directly
+        timer.play_alarm_on_timeout = field["play alarm"].isChecked()
+        timer.is_repeating = field["repeat"].isChecked()
 
     def load_json(self, filename, default_val):
         """Helper to load JSON data with a fallback."""
