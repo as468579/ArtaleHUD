@@ -32,7 +32,7 @@ class Timer(QObject):
         self.is_running = False  # True if timer is counting down
         self.is_paused = False  # True if timer is paused
         self._thread = None  # Internal thread for countdown
-        self._delta = 0.1
+        self._delta = 0.05
 
         self._next_time = 0  # The exact 'time.perf_counter()' when timer hits 0
         self._remaining_at_pause = 0  # Seconds left when the timer was paused
@@ -101,7 +101,7 @@ class Timer(QObject):
         """Internal countdown logic running in a separate thread."""
         while self.is_running:
             if not self.is_paused:
-                self.current_sec = self._next_time - time.perf_counter()
+                self.current_sec = max(0, self._next_time - time.perf_counter())
 
                 # Check if timer has expired
                 if self.current_sec <= 0:

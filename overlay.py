@@ -50,7 +50,9 @@ class UnifiedOverlay(QWidget):
 
         # Ensure the window remains visible on macOS when the app loses focus
         if sys.platform == "darwin":
-            self.setAttribute(Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow, True)
+            self.setAttribute(
+                Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow, True
+            )
 
         # Internal timer to refresh the UI smoothly (60 FPS)
         self.refresh_timer = QTimer()
@@ -167,7 +169,10 @@ class UnifiedOverlay(QWidget):
             elif timer.is_paused:
                 text = "PAUSE"
             else:
-                text = f"{int(timer.current_sec)}s"
+                if timer.current_sec <= 2.0:
+                    text = f"{timer.current_sec:.1f}s"
+                else:
+                    text = f"{int(timer.current_sec)}s"
 
             painter.drawText(number_rect, Qt.AlignmentFlag.AlignCenter, text)
 
